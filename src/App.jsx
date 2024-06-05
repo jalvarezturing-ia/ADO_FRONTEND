@@ -3,14 +3,21 @@ import { useNavigate } from "react-router-dom";
 
 const App = () => {
   const navigate = useNavigate();
-  let token = JSON.parse(localStorage.getItem("userToken"));
+
+  // obtener los query params
+  // guardarlos en el local storage
+  let ejTok = "12345";
+
+  if (ejTok) {
+    window.localStorage.setItem("userToken", ejTok);
+  }
 
   useEffect(() => {
-    if (token) {
+    if (ejTok) {
       return navigate("/home");
     }
     return navigate("/login");
-  }, [navigate, token]);
+  }, [navigate, ejTok]);
 
   return <div>Hola</div>;
 };

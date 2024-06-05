@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 const PageDashboardPDF = () => {
   const navigate = useNavigate();
   const handleclicDeleteSesion = () => {
-    localStorage.removeItem("userToken");
+    window.localStorage.removeItem("userToken");
     return navigate("/");
   };
   return (
