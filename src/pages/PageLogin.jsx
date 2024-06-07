@@ -1,14 +1,10 @@
 import { useNavigate } from "react-router-dom";
 
 const PageLogin = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const handleClicCreateSesion = () => {
-    const dataUser = {
-      Username: "Juanito",
-      Email: "example@gmail.com",
-    };
-      localStorage.setItem("userToken", JSON.stringify(dataUser));
-      return navigate("/");
+    // const backUrl = process.env.BACK_OKTA;
+    window.location.href = "http://localhost:3000/api/v1/login";
   };
 
   return (
