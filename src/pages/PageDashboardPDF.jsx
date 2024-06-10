@@ -10,6 +10,7 @@ import {
   FormControl,
   FormLabel,
   IconButton,
+  Tooltip,
 } from "@chakra-ui/react";
 import {
   Modal,
@@ -21,24 +22,35 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 import logo from "../assets/mobility_ado.png";
-import { ChevronDownIcon, DeleteIcon, ViewIcon } from "@chakra-ui/icons";
+import logoPDF from "../assets/Imagepdf.png";
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DeleteIcon,
+  ViewIcon,
+} from "@chakra-ui/icons";
 import moment from "moment";
 import { useState, useEffect, useCallback } from "react";
 import "moment/locale/es-mx";
 import categorias from "../data/Categorias";
 import { Menu, MenuButton, MenuList, MenuItem } from "@chakra-ui/react";
-import { MdLogout } from "react-icons/md";
+import {
+  MdAccountCircle,
+  MdLogout,
+  MdOutlineSettings,
+  MdPerson,
+} from "react-icons/md";
 import { Table, Thead, Tbody, Tr, Th, Td, chakra } from "@chakra-ui/react";
 import { Worker } from "@react-pdf-viewer/core";
 import { Viewer, SpecialZoomLevel } from "@react-pdf-viewer/core";
+import fileDoc from "../assets/Documento1.pdf";
+import { Pagination } from "react-rainbow-components";
+import { useDropzone } from "react-dropzone";
 // import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import "@react-pdf-viewer/core/lib/styles/index.css";
-import fileDoc from "../assets/Documento1.pdf";
-import { Pagination } from "react-rainbow-components";
-
-import { useDropzone } from "react-dropzone";
 
 const PageDashboardPDF = () => {
   const [fecha, setFecha] = useState("");
@@ -46,6 +58,7 @@ const PageDashboardPDF = () => {
   const [dataFiles, setDataFiles] = useState([]);
   const [filePreviews, setFilePreviews] = useState([]);
   const [files, setFiles] = useState([]);
+  const [mostrarContenido, setMostrarContenido] = useState(true);
 
   const [selectCategoria, setselectCategoria] = useState("");
   // const [fileUrl, setFile] = useState("");
@@ -53,25 +66,41 @@ const PageDashboardPDF = () => {
   const [selectedCategory, setSelectedCategory] = useState(0);
 
   const [isCreateNewFile, setisCreateNewFile] = useState(false);
+  const [isCreateNewCategory, setisCreateNewCategory] = useState(false);
 
   // const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
   const [currentPage, setCurrentPage] = useState(1);
+
   const itemsPerPage = 5;
 
-  const onDrop = useCallback((acceptedFiles) => {
-    const previews = acceptedFiles.map((file) => ({
-      name: file.name,
-      preview: file.type.startsWith("image/")
-        ? URL.createObjectURL(file)
-        : logo,
-    }));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const dataToShow = dataFiles.slice(startIndex, endIndex);
 
-    setFilePreviews((prevPreviews) => [...prevPreviews, ...previews]);
-    setFiles((prevFiles) => [...prevFiles, ...acceptedFiles]);
+  const alternarVisibilidad = () => {
+    setMostrarContenido(!mostrarContenido);
+  };
+
+  const onDrop = useCallback((acceptedFiles) => {
+    const pdfFiles = acceptedFiles.filter(
+      (file) => file.type === "application/pdf"
+    );
+    if (pdfFiles.length > 0) {
+      const file = pdfFiles[0];
+      const preview = {
+        name: file.name,
+        preview: logoPDF,
+      };
+      setFilePreviews([preview]);
+      setFiles([file]);
+    }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: ".pdf",
+  });
 
   const handleRemovePreview = (index) => {
     const updatedPreviews = [...filePreviews];
@@ -82,13 +111,9 @@ const PageDashboardPDF = () => {
     setFiles(updatefiles);
   };
 
-  const handlePageChange = (page) => {
+  const handlePageChange = (event, page) => {
     setCurrentPage(page);
   };
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const dataToShow = dataFiles.slice(startIndex, endIndex);
 
   const handleClickNewDocument = () => {
     //Registro de un documento a la BD
@@ -177,15 +202,17 @@ const PageDashboardPDF = () => {
       >
         <Box display="flex" alignItems="center" px={4} gap={2}>
           <Box
-            w="80px"
+            w="60px"
             h="60px"
             bg="white"
-            borderRadius="10px"
+            borderRadius="full"
             display="flex"
             justifyContent="center"
             alignItems="center"
           >
-            <Image src={logo} w="70px" h="60px" />
+            <Tooltip label="Pagina principal">
+              <Image src={logo} w="60px" h="50px" />
+            </Tooltip>
           </Box>
           <Box>
             <Text fontWeight="500" color="white">
@@ -198,46 +225,148 @@ const PageDashboardPDF = () => {
         </Box>
         <Box display="flex" justifyContent="center" alignItems="center" p={3}>
           <Menu zIndex={2}>
-            <MenuButton as={Button} size="sm" rightIcon={<ChevronDownIcon />}>
-              <Text fontWeight="400">Alejandro Cruz</Text>
-            </MenuButton>
+            <Tooltip label="Perfil del usuario">
+              <MenuButton
+                as={Box}
+                size="sm"
+                bg="red.500"
+                color="white"
+                display="flex"
+                flexDir="row"
+                w="auto"
+                h="auto"
+                _hover={{ bg: "red.600" }}
+                borderRadius="full"
+                boxShadow="md"
+              >
+                <Box
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  gap={2}
+                >
+                  <Icon as={MdAccountCircle} w="60px" h="60px"></Icon>
+                  <Box display="flex" flexDir="column" alignItems="flex-start">
+                    <Text fontWeight="500" fontSize="14px">
+                      Alejandro Cruz
+                    </Text>
+                    <Text fontWeight="300" fontSize="12px">
+                      Administrador
+                    </Text>
+                  </Box>
+
+                  <Icon as={ChevronDownIcon}></Icon>
+                </Box>
+              </MenuButton>
+            </Tooltip>
+
             <MenuList>
+              <MenuItem icon={<MdPerson />}>Perfil</MenuItem>
+              <MenuItem icon={<MdOutlineSettings />}>Configuración</MenuItem>
               <MenuItem icon={<MdLogout />}>Cerrar sesión</MenuItem>
             </MenuList>
           </Menu>
         </Box>
       </Box>
       <Box w="100%" h="90%" display="flex">
-        <Box w="20%" h="100%" borderRight="1px" borderColor="gray.300" p={3}>
-          <Text color="red.500" fontWeight="bold" fontSize="22px">
-            Lista de categorias
-          </Text>
-          <Divider my={3} />
-          {categorias.map((categoria, index) => (
+        {mostrarContenido ? (
+          <Box w="20%" h="100%" borderRight="1px" borderColor="gray.300" p={3}>
             <Box
-              key={index}
-              w="100%"
-              p={3}
-              my={3}
-              onClick={() => handleClickChangeBoxView(index, categoria)}
-              bgGradient={
-                selectedCategory === index
-                  ? "linear(to-l, red.200, red.200)"
-                  : "white"
-              }
-              boxShadow={selectedCategory === index ? "md" : "none"}
               display="flex"
               justifyContent="space-between"
-              borderRadius="sm"
+              alignItems="center"
             >
-              <Text fontWeight={selectedCategory === index ? "500" : "400"}>
-                {categoria.Nombre}
+              <Text color="red.500" fontWeight="bold" fontSize="22px">
+                Lista de categorias
               </Text>
-              <Text fontWeight="200">{categoria.files.length}</Text>
+              <Box cursor="pointer" onClick={alternarVisibilidad}>
+                <Icon as={ChevronLeftIcon} boxSize="25px" color="gray" />
+              </Box>
             </Box>
-          ))}
-        </Box>
-        <Box w="80%" h="100%" display="flex">
+
+            <Divider my={3} />
+            {categorias.map((categoria, index) => (
+              <Tooltip
+                key={index}
+                label={`Total de documentos: ${categoria.files.length}`}
+                placement="right"
+              >
+                <Box
+                  key={index}
+                  w="100%"
+                  p={3}
+                  my={3}
+                  onClick={() => handleClickChangeBoxView(index, categoria)}
+                  bgGradient={
+                    selectedCategory === index
+                      ? "linear(to-l, red.200, red.200)"
+                      : "white"
+                  }
+                  boxShadow={selectedCategory === index ? "md" : "none"}
+                  display="flex"
+                  justifyContent="space-between"
+                  borderRadius="md"
+                >
+                  <Text fontWeight={selectedCategory === index ? "500" : "400"}>
+                    {categoria.Nombre}
+                  </Text>
+                  <Text fontWeight="200">{categoria.files.length}</Text>
+                </Box>
+              </Tooltip>
+            ))}
+          </Box>
+        ) : (
+          <Box w="auto" h="100%" borderRight="1px" borderColor="gray.300" p={3}>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Text
+                color="red.500"
+                fontWeight="bold"
+                fontSize="22px"
+                display="none"
+              >
+                Lista de categorias
+              </Text>
+              <Box cursor="pointer" onClick={alternarVisibilidad}>
+                <Icon as={ChevronRightIcon} boxSize="25px" color="gray" />
+              </Box>
+            </Box>
+
+            <Divider my={3} display="none" />
+            {categorias.map((categoria, index) => (
+              <Tooltip
+                key={index}
+                label={`Total de documentos: ${categoria.files.length}`}
+                placement="right"
+              >
+                <Box
+                  display="none"
+                  w="100%"
+                  p={3}
+                  my={3}
+                  onClick={() => handleClickChangeBoxView(index, categoria)}
+                  bgGradient={
+                    selectedCategory === index
+                      ? "linear(to-l, red.200, red.200)"
+                      : "white"
+                  }
+                  boxShadow={selectedCategory === index ? "md" : "none"}
+                  justifyContent="space-between"
+                  borderRadius="sm"
+                >
+                  <Text fontWeight={selectedCategory === index ? "500" : "400"}>
+                    {categoria.Nombre}
+                  </Text>
+                  <Text fontWeight="200">{categoria.files.length}</Text>
+                </Box>
+              </Tooltip>
+            ))}
+          </Box>
+        )}
+        <Box w={mostrarContenido ? "80%" : "100%"} h="100%" display="flex">
           <Box w="70%" h="100%" p={3}>
             <Box display="flex" w="70%" gap={3}>
               <Input
@@ -263,6 +392,15 @@ const PageDashboardPDF = () => {
                     <Box>
                       <FormControl isRequired>
                         <FormLabel>Categoria</FormLabel>
+                        <Text
+                          cursor="pointer"
+                          textAlign="end"
+                          color="red"
+                          fontSize="12px"
+                          onClick={() => setisCreateNewCategory(true)}
+                        >
+                          + Nueva categoria
+                        </Text>
                         <Select
                           placeholder="selecciona una categoria"
                           value={selectCategoria}
@@ -316,7 +454,7 @@ const PageDashboardPDF = () => {
                                 <DeleteIcon
                                   color="gray.500"
                                   h="20px"
-                                  w="20px"
+                                  w="15px"
                                 />
                               }
                               h="auto"
@@ -324,22 +462,20 @@ const PageDashboardPDF = () => {
                               borderRadius="full"
                               onClick={() => handleRemovePreview(index)}
                             />
-                            {preview.preview !== logo ? ( // Comprueba si la previsualización es diferente del logo
+                            {preview.preview !== logo && (
                               <Image
                                 src={preview.preview}
                                 alt={preview.name}
-                                width="100"
-                                height="100"
-                              />
-                            ) : (
-                              <Image
-                                src={preview.preview}
-                                alt="Documento"
-                                width="100"
-                                height="100"
+                                width="80px"
+                                height="80px"
                               />
                             )}
-                            <Text maxW="100px" isTruncated>
+                            <Text
+                              color="gray"
+                              fontSize="12px"
+                              maxW="200px"
+                              isTruncated
+                            >
                               {preview.name}
                             </Text>
                           </Box>
@@ -352,6 +488,36 @@ const PageDashboardPDF = () => {
                       colorScheme="gray"
                       mr={3}
                       onClick={() => setisCreateNewFile(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button colorScheme="red" onClick={handleClickNewDocument}>
+                      Guardar
+                    </Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
+
+              <Modal isOpen={isCreateNewCategory} onClose={isCreateNewCategory}>
+                <ModalOverlay />
+                <ModalContent>
+                  <ModalHeader color="red">+ Nueva categoria</ModalHeader>
+                  <ModalCloseButton
+                    onClick={() => setisCreateNewCategory(false)}
+                  />
+                  <ModalBody display="flex" flexDir="column" gap={4}>
+                    <Box>
+                      <FormControl isRequired>
+                        <FormLabel>Nombre de la categoria</FormLabel>
+                        <Input />
+                      </FormControl>
+                    </Box>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      colorScheme="gray"
+                      mr={3}
+                      onClick={() => setisCreateNewCategory(false)}
                     >
                       Cancelar
                     </Button>
@@ -379,8 +545,23 @@ const PageDashboardPDF = () => {
                       key={index}
                       onClick={() => handleclicViewPreDoc(file)}
                     >
-                      <Td color="gray.600" fontSize="13px">
-                        {file.name}
+                      <Td
+                        color="gray.600"
+                        fontSize="13px"
+                        display="flex"
+                        justifyContent="flex-start"
+                        alignItems="center"
+                        gap={1}
+                      >
+                        <Image
+                          src={logoPDF}
+                          alt="file"
+                          width="20px"
+                          height="20px"
+                        />
+                        <Tooltip label={file.name}>
+                          <Text>{file.name}</Text>
+                        </Tooltip>
                       </Td>
                       <Td color="gray.600" fontSize="13px">
                         {file.creation}
@@ -392,16 +573,21 @@ const PageDashboardPDF = () => {
                         {file.size}
                       </Td>
                       <Td display="flex" gap="2">
-                        <Icon
-                          as={ViewIcon}
-                          cursor="pointer"
-                          _hover={{ color: "red" }}
-                        ></Icon>
-                        <Icon
-                          as={DeleteIcon}
-                          cursor="pointer"
-                          _hover={{ color: "red" }}
-                        ></Icon>
+                        <Tooltip label="Visualizar">
+                          <Icon
+                            as={ViewIcon}
+                            cursor="pointer"
+                            _hover={{ color: "red" }}
+                          ></Icon>
+                        </Tooltip>
+                        <Tooltip label="Eliminar">
+                          <Icon
+                            color="red"
+                            as={DeleteIcon}
+                            cursor="pointer"
+                            _hover={{ color: "red" }}
+                          ></Icon>
+                        </Tooltip>
                       </Td>
                     </CustomTr>
                   ))}
@@ -411,7 +597,9 @@ const PageDashboardPDF = () => {
                 <Pagination
                   pages={Math.ceil(dataFiles.length / itemsPerPage)}
                   activePage={currentPage}
-                  onChange={handlePageChange}
+                  onChange={(event, pageNumber) =>
+                    handlePageChange(event, pageNumber)
+                  }
                 />
               </Box>
             </Box>
